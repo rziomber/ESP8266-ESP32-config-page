@@ -1,21 +1,33 @@
-#include <LittleFS.h>
+#if defined(ESP8266)
 #include <ESP8266WiFi.h>
-#include <WiFiClient.h>
 #include <ESP8266WebServer.h>
-#include <ArduinoJson.h> //https://github.com/bblanchon/ArduinoJson
-
+ESP8266WebServer server(80);
 #define WiFimodeButton D6
+#elif defined(ESP32)
+#include <WiFi.h>
+#include <WebServer.h>
+#include <MD5Builder.h>
+#define WiFimodeButton 13
+WebServer server(80);
+#endif
+
+#include <LittleFS.h>
+#include <WiFiClient.h>
+#include <ArduinoJson.h>  //https://github.com/bblanchon/ArduinoJson
 
 String ssid, pass;
 const String accesspassword = "pass";
 const char* WiFiHostname = "mydevice";
 
-ESP8266WebServer server(80);
-
 void setup() {
   Serial.begin(9600);
-  //https://www.mischianti.org/2020/06/22/wemos-d1-mini-esp8266-integrated-littlefs-filesystem-part-5/
+//https://www.mischianti.org/2020/06/22/wemos-d1-mini-esp8266-integrated-littlefs-filesystem-part-5/
+#if defined(ESP8266)
   LittleFS.begin();
+#elif defined(ESP32)
+  LittleFS.begin(true);  //FORMAT_LITTLEFS_IF_FAILED
+#endif
+
   File settingsFile = LittleFS.open("/settings.txt", "r");
   String settingsString;
   if (settingsFile && !settingsFile.isDirectory()) {
@@ -26,8 +38,7 @@ void setup() {
   //https://arduinojson.org/v6/doc/upgrade/
   DynamicJsonDocument doc(10024);
   DeserializationError error = deserializeJson(doc, settingsString);
-  if (!error)
-  {
+  if (!error) {
     ssid = doc["ssid"].as<String>();
     pass = doc["pass"].as<String>();
     int variable = doc["variable"];
@@ -46,9 +57,7 @@ void setup() {
     WiFi.softAP("aquarium", "12354566545t");
     Serial.print("IP address:\t");
     Serial.println(WiFi.softAPIP());
-  }
-  else
-  {
+  } else {
     //station part
 
     Serial.print("connecting to...");
@@ -77,8 +86,7 @@ void setup() {
   //server.on("/", handleRoot);
   server.on("/login", handleLogin);
 
-
-  const char * headerkeys[] = {"Cookie"} ;
+  const char* headerkeys[] = { "Cookie" };
   size_t headerkeyssize = sizeof(headerkeys) / sizeof(char*);
   //ask server to track these headers
   server.collectHeaders(headerkeys, headerkeyssize);
@@ -142,8 +150,7 @@ void handleRootPost() {
     settingsFile.print(settingsString);
     settingsFile.close();
 
-    if (server.hasArg("SSID") && server.arg("SSID") != "" && server.hasArg("wifipass") && server.arg("wifipass") != "")
-    {
+    if (server.hasArg("SSID") && server.arg("SSID") != "" && server.hasArg("wifipass") && server.arg("wifipass") != "") {
       ESP.restart();
     }
   }
