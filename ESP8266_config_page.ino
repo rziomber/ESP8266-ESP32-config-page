@@ -29,15 +29,9 @@ void setup() {
 #endif
 
   File settingsFile = LittleFS.open("/settings.txt", "r");
-  String settingsString;
-  if (settingsFile && !settingsFile.isDirectory()) {
-    settingsString = settingsFile.readString();
-  }
+  StaticJsonDocument<1000> doc;
+  DeserializationError error = deserializeJson(doc, settingsFile);
   settingsFile.close();
-
-  //https://arduinojson.org/v6/doc/upgrade/
-  DynamicJsonDocument doc(10024);
-  DeserializationError error = deserializeJson(doc, settingsString);
   if (!error) {
     ssid = doc["ssid"].as<String>();
     pass = doc["pass"].as<String>();
@@ -145,10 +139,10 @@ void handleRootPost() {
       doc["pass"] = pass;
 
     File settingsFile = LittleFS.open("/settings.txt", "w");
-    String settingsString;
-    serializeJson(doc, settingsString);
-    settingsFile.print(settingsString);
-    settingsFile.close();
+    if (settingsFile) {
+      serializeJson(doc, settingsFile);
+      settingsFile.close();
+    }
 
     if (server.hasArg("SSID") && server.arg("SSID") != "" && server.hasArg("wifipass") && server.arg("wifipass") != "") {
       ESP.restart();
