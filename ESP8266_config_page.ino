@@ -56,7 +56,7 @@ void setup() {
 
     Serial.print("connecting to...");
     Serial.println(ssid + " " + pass);
-    WiFi.hostname(WiFiHostname);
+    WiFi.setHostname(WiFiHostname);
     WiFi.mode(WIFI_STA);
     WiFi.begin(ssid.c_str(), pass.c_str());
     /*
