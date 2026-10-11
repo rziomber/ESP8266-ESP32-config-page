@@ -95,7 +95,7 @@ void handleRoot() {
   if (!is_authentified()) {
     server.sendHeader("Location", "/login");
     server.sendHeader("Cache-Control", "no-cache");
-    server.send(301);
+    server.send(302);
     return;
   }
 
@@ -123,7 +123,7 @@ void handleRootPost() {
   if (!is_authentified()) {
     server.sendHeader("Location", "/login");
     server.sendHeader("Cache-Control", "no-cache");
-    server.send(301);
+    server.send(302);
     return;
   }
 
@@ -180,7 +180,7 @@ void handleLogin() {
     server.sendHeader("Location", "/login");
     server.sendHeader("Cache-Control", "no-cache");
     server.sendHeader("Set-Cookie", "WEATHERSTATION=0");
-    server.send(301);
+    server.send(302);
     return;
   }
   if (server.hasArg("PASSWORD")) {
@@ -189,7 +189,7 @@ void handleLogin() {
       server.sendHeader("Cache-Control", "no-cache");
       String cookielogin = "WEATHERSTATION=" + md5(accesspassword);
       server.sendHeader("Set-Cookie", cookielogin);
-      server.send(301);
+      server.send(302);
       Serial.println("Log in Successful");
       return;
     }
